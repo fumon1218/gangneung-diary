@@ -1,5 +1,4 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { useStore } from './store';
 import { YearlyView } from './components/views/YearlyView';
 import { MonthlyView } from './components/views/MonthlyView';
 import { WeeklyView } from './components/views/WeeklyView';

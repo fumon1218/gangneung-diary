@@ -7,7 +7,6 @@ import {
     startOfYear,
     eachMonthOfInterval,
     endOfYear,
-    startOfMonth,
     endOfMonth,
     startOfWeek,
     endOfWeek,

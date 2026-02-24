@@ -9,7 +9,6 @@ import {
     startOfWeek,
     endOfWeek,
     isSameMonth,
-    isSameDay,
     addDays,
     isToday
 } from 'date-fns';
