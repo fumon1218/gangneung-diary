@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강릉분원 업무수첩 (Web App)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&family=Pretendard:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style type="text/tailwindcss">
+        @theme {
+            --color-paper-50: #faf9f6;
+            --color-paper-100: #f4f2eb;
+            --color-paper-200: #e8e5d9;
+            --color-ink-700: #2b313b;
+            --color-ink-900: #0f1115;
+            --accent-blue: #476dbd;
+        }
+        body { 
+            @apply bg-paper-50 text-ink-700 antialiased selection:bg-accent-blue/20;
+            font-family: 'Pretendard', sans-serif; 
+        }
+        .font-serif { font-family: 'Noto Serif KR', serif; }
+        .diary-page { @apply bg-white border border-[#e8e5d9] rounded-2xl shadow-sm; }
+        .diary-line { border-bottom: 1px solid #e8e5d9; }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const dateUtils = {
+            format: (date, pattern) => {
+                const d = new Date(date);
+                if (pattern === 'M월') return (d.getMonth() + 1) + '월';
+                if (pattern === 'yyyy') return d.getFullYear();
+                if (pattern === 'd') return d.getDate();
+                if (pattern === 'yyyy-MM-dd') return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                return d.toLocaleDateString();
+            },
+            getDaysInMonth: (date) => {
+                const d = new Date(date);
+                const days = [];
+                const firstDay = new Date(d.getFullYear(), d.getMonth(), 1);
+                const lastDay = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+                const startPadding = firstDay.getDay();
+                for (let i = 0; i < startPadding; i++) {
+                    const prev = new Date(firstDay);
+                    prev.setDate(firstDay.getDate() - (startPadding - i));
+                    days.push({ date: prev, currentMonth: false });
+                }
+                for (let i = 1; i <= lastDay.getDate(); i++) {
+                    days.push({ date: new Date(d.getFullYear(), d.getMonth(), i), currentMonth: true });
+                }
+                return days;
+            }
+        };
+
+        const App = () => {
+            const [view, setView] = useState('monthly');
+            const [currentDate, setCurrentDate] = useState(new Date());
+            const [todos, setTodos] = useState([]);
+            const [inputText, setInputText] = useState('');
+
+            const dailyTodos = todos.filter(t => t.date === dateUtils.format(currentDate, 'yyyy-MM-dd'));
+
+            const handleAddTodo = (e) => {
+                e.preventDefault();
+                if (!inputText.trim()) return;
+                setTodos([...todos, { id: Date.now(), text: inputText, date: dateUtils.format(currentDate, 'yyyy-MM-dd'), completed: false }]);
+                setInputText('');
+            };
+
+            return (
+                <div className="max-w-6xl mx-auto py-10 px-6">
+                    <header className="flex justify-between items-center mb-10">
+                        <h1 className="text-3xl font-serif font-bold text-gray-900">강릉분원 업무수첩</h1>
+                        <nav className="flex gap-2 bg-white p-1 rounded-xl border">
+                            {['yearly', 'monthly', 'weekly', 'daily'].map(v => (
+                                <button key={v} onClick={() => setView(v)} className={`px-4 py-2 rounded-lg text-sm font-bold ${view === v ? 'bg-gray-100 text-black' : 'text-gray-400'}`}>
+                                    {v === 'yearly' ? '연간' : v === 'monthly' ? '월간' : v === 'weekly' ? '주간' : '일간'}
+                                </button>
+                            ))}
+                        </nav>
+                    </header>
+
+                    <main className="diary-page p-8 min-h-[600px] bg-white relative">
+                        {view === 'monthly' ? (
+                            <div className="h-full">
+                                <div className="flex justify-between items-center mb-8">
+                                    <h2 className="text-4xl font-serif font-bold">{dateUtils.format(currentDate, 'M월')} <span className="text-lg font-sans text-gray-400 ml-2">{dateUtils.format(currentDate, 'yyyy')}</span></h2>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))} className="p-2 border rounded-full">←</button>
+                                        <button onClick={() => setCurrentDate(new Date())} className="px-4 py-1 border rounded-full text-sm font-bold">Today</button>
+                                        <button onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))} className="p-2 border rounded-full">→</button>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-7 border rounded-xl overflow-hidden shadow-sm">
+                                    {['일', '월', '화', '수', '목', '금', '토'].map(d => <div key={d} className="bg-gray-50 p-2 text-center text-xs font-bold text-gray-400 border-b">{d}</div>)}
+                                    {dateUtils.getDaysInMonth(currentDate).map((dayObj, i) => (
+                                        <div key={i} onClick={() => { setCurrentDate(dayObj.date); setView('daily'); }} className={`h-24 p-2 border-r border-b hover:bg-gray-50 cursor-pointer ${dayObj.currentMonth ? '' : 'bg-gray-50/50 text-gray-300'}`}>
+                                            <span className="text-sm font-bold">{dayObj.date.getDate()}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : view === 'daily' ? (
+                            <div className="h-full flex flex-col">
+                                <div className="flex justify-between border-b pb-4 mb-8">
+                                    <h2 className="text-4xl font-serif font-bold">{dateUtils.format(currentDate, 'd')} <span className="text-lg font-sans text-gray-400 ml-2">{dateUtils.format(currentDate, 'yyyy-MM-dd')}</span></h2>
+                                    <button onClick={() => setView('monthly')} className="text-blue-600 font-bold text-sm">달력보기</button>
+                                </div>
+                                <div className="grid grid-cols-3 gap-10 flex-1">
+                                    <div className="col-span-2 space-y-6">
+                                        <h3 className="font-bold text-xl mb-4">Daily To-Do List</h3>
+                                        <form className="flex gap-2" onSubmit={handleAddTodo}>
+                                            <input value={inputText} onChange={e => setInputText(e.target.value)} className="flex-1 border p-3 rounded-xl shadow-inner outline-none focus:ring-2 ring-blue-100 placeholder:text-gray-300" placeholder="할 일을 입력하세요..." />
+                                            <button className="bg-gray-900 text-white px-6 py-3 rounded-xl font-bold">추가</button>
+                                        </form>
+                                        <div className="space-y-3">
+                                            {dailyTodos.map(todo => (
+                                                <div key={todo.id} className="flex items-center gap-4 p-4 border rounded-xl bg-white shadow-sm">
+                                                    <input type="checkbox" checked={todo.completed} onChange={() => setTodos(todos.map(t => t.id === todo.id ? { ...t, completed: !t.completed } : t))} className="w-5 h-5" />
+                                                    <span className={`flex-1 font-medium ${todo.completed ? 'line-through text-gray-300' : ''}`}>{todo.text}</span>
+                                                    <button onClick={() => setTodos(todos.filter(t => t.id !== todo.id))} className="text-red-300">삭제</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-2xl p-6 border-dashed border-2 flex flex-col min-h-[400px]">
+                                        <h3 className="font-bold text-gray-300 text-xs tracking-widest mb-4">MEMO</h3>
+                                        <div className="flex-1" style={{ backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #e8e5d9 31px, #e8e5d9 32px)', backgroundSize: '100% 32px' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="h-full flex items-center justify-center text-gray-300 text-2xl font-bold italic tracking-widest">
+                                {view.toUpperCase()} VIEW PREPARING...
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

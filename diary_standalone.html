@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강릉분원 업무수첩 (Standalone)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/date-fns@2.30.0/dist/date-fns.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+        :root {
+            --paper-50: #faf9f6;
+            --paper-100: #f4f2eb;
+            --paper-200: #e8e5d9;
+            --paper-300: #d7d2c1;
+            --ink-500: #525b6a;
+            --ink-700: #2b313b;
+            --ink-900: #0f1115;
+            --accent-blue: #476dbd;
+            --accent-red: #c95151;
+        }
+
+        body {
+            background-color: var(--paper-50);
+            color: var(--ink-700);
+            font-family: 'Pretendard', sans-serif;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-serif {
+            font-family: 'Noto Serif KR', serif;
+        }
+
+        .diary-page {
+            background: white;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--paper-200);
+            border-radius: 12px;
+        }
+
+        .diary-line {
+            border-bottom: 1px solid var(--paper-200);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--paper-300);
+            border-radius: 10px;
+        }
+
+        .active-tab {
+            background-color: var(--paper-100) !important;
+            color: var(--ink-900) !important;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isToday, startOfYear, endOfYear, eachMonthOfInterval, addWeeks, subWeeks, addYears, subYears } = dateFns;
+
+        // --- Store Mock ---
+        const useStore = () => {
+            const [viewMode, setViewMode] = useState('monthly');
+            const [currentDate, setCurrentDate] = useState(new Date());
+            const [todos, setTodos] = useState([]);
+
+            const addTodo = (date, text) => {
+                const newTodo = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    date: format(date, 'yyyy-MM-dd'),
+                    text,
+                    isCompleted: false
+                };
+                setTodos([...todos, newTodo]);
+            };
+
+            const toggleTodo = (id) => {
+                setTodos(todos.map(t => t.id === id ? { ...t, isCompleted: !t.isCompleted } : t));
+            };
+
+            const deleteTodo = (id) => {
+                setTodos(todos.filter(t => t.id !== id));
+            };
+
+            return { viewMode, setViewMode, currentDate, setCurrentDate, todos, addTodo, toggleTodo, deleteTodo };
+        };
+
+        // --- Components ---
+        const Navigation = ({ viewMode, setViewMode }) => {
+            const tabs = [
+                { id: 'yearly', label: '연간' },
+                { id: 'monthly', label: '월간' },
+                { id: 'weekly', label: '주간' },
+                { id: 'daily', label: '일간' }
+            ];
+            return (
+                <nav className="flex bg-white p-1 rounded-xl border border-gray-200 shadow-sm">
+                    {tabs.map(tab => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setViewMode(tab.id)}
+                            className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${viewMode === tab.id ? 'active-tab' : 'text-gray-400 hover:text-gray-600'}`}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
+            );
+        };
+
+        const MonthlyView = ({ currentDate, setCurrentDate, setViewMode }) => {
+            const monthStart = startOfMonth(currentDate);
+            const monthEnd = endOfMonth(monthStart);
+            const startDate = startOfWeek(monthStart);
+            const endDate = endOfWeek(monthEnd);
+
+            const rows = [];
+            let days = [];
+            let day = startDate;
+
+            while (day <= endDate) {
+                for (let i = 0; i < 7; i++) {
+                    const cloneDay = day;
+                    days.push(
+                        <div
+                            key={day.toString()}
+                            onClick={() => { setCurrentDate(cloneDay); setViewMode('daily'); }}
+                            className={`border-r border-b border-gray-100 p-2 min-h-[100px] cursor-pointer hover:bg-gray-50 flex flex-col ${!isSameMonth(day, monthStart) ? 'bg-gray-50/50 text-gray-300' : 'text-gray-700'}`}
+                        >
+                            <span className={`text-xs font-bold ${isToday(day) ? 'text-blue-600' : i === 0 ? 'text-red-400' : ''}`}>{format(day, 'd')}</span>
+                            <div className="mt-2 space-y-2">
+                                <div className="diary-line h-4"></div>
+                                <div className="diary-line h-4"></div>
+                            </div>
+                        </div>
+                    );
+                    day = addDays(day, 1);
+                }
+                rows.push(<div key={day.toString()} className="grid grid-cols-7">{days}</div>);
+                days = [];
+            }
+
+            return (
+                <div className="flex flex-col h-full">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-3xl font-serif font-bold">{format(currentDate, 'M월')} <span className="text-sm font-sans text-gray-400 font-medium ml-2">{format(currentDate, 'yyyy')}</span></h2>
+                        <div className="flex gap-2">
+                            <button onClick={() => setCurrentDate(subMonths(currentDate, 1))} className="p-2 border rounded-full hover:bg-gray-50">←</button>
+                            <button onClick={() => setCurrentDate(new Date())} className="px-4 py-1 text-sm font-bold border rounded-full hover:bg-gray-50">Today</button>
+                            <button onClick={() => setCurrentDate(addMonths(currentDate, 1))} className="p-2 border rounded-full hover:bg-gray-50">→</button>
+                        </div>
+                    </div>
+                    <div className="flex-1 border border-gray-200 rounded-xl overflow-hidden flex flex-col">
+                        <div className="grid grid-cols-7 bg-gray-50 border-b border-gray-200 p-2 text-center text-[10px] font-bold text-gray-400 tracking-widest">
+                            {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map(d => <div key={d}>{d}</div>)}
+                        </div>
+                        <div className="flex-1">{rows}</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DailyView = ({ currentDate, setViewMode, todos, addTodo, toggleTodo, deleteTodo }) => {
+            const [text, setText] = useState('');
+            const dailyTodos = todos.filter(t => t.date === format(currentDate, 'yyyy-MM-dd'));
+
+            return (
+                <div className="flex flex-col h-full">
+                    <div className="flex justify-between items-end mb-8 border-b pb-4">
+                        <div>
+                            <h2 className="text-4xl font-serif font-bold">{format(currentDate, 'd')}</h2>
+                            <p className="text-sm text-gray-400 font-bold tracking-widest uppercase">{format(currentDate, 'EEEE, MMMM yyyy')}</p>
+                        </div>
+                        <button onClick={() => setViewMode('monthly')} className="text-sm font-bold text-blue-600">달력으로 돌아가기</button>
+                    </div>
+                    <div className="flex-1 flex gap-8">
+                        <div className="flex-1 diary-page p-6 flex flex-col">
+                            <h3 className="font-bold text-lg mb-4">To-Do List</h3>
+                            <form className="flex gap-2 mb-6" onSubmit={(e) => { e.preventDefault(); if (text.trim()) { addTodo(currentDate, text); setText(''); } }}>
+                                <input value={text} onChange={e => setText(e.target.value)} className="flex-1 border p-2 rounded-lg text-sm" placeholder="업무 입력..." />
+                                <button className="bg-gray-800 text-white px-4 py-2 rounded-lg font-bold">추가</button>
+                            </form>
+                            <div className="space-y-2 flex-1 overflow-y-auto">
+                                {dailyTodos.map(todo => (
+                                    <div key={todo.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
+                                        <input type="checkbox" checked={todo.isCompleted} onChange={() => toggleTodo(todo.id)} />
+                                        <span className={`flex-1 text-sm font-medium ${todo.isCompleted ? 'line-through text-gray-400' : ''}`}>{todo.text}</span>
+                                        <button onClick={() => deleteTodo(todo.id)} className="text-red-300 hover:text-red-500">×</button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="w-1/3 diary-page p-6 border-dashed" style={{ backgroundImage: 'repeating-linear-gradient(white, white 31px, #f0f0f0 31px, #f0f0f0 32px)' }}>
+                            <h3 className="font-bold text-gray-300 text-xs tracking-widest mb-4">MEMO</h3>
+                            <div className="h-full"></div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const store = useStore();
+            const { viewMode, setViewMode, currentDate, setCurrentDate, todos, addTodo, toggleTodo, deleteTodo } = store;
+
+            return (
+                <div className="max-w-6xl mx-auto py-10 px-6 min-h-screen flex flex-col">
+                    <header className="flex justify-between items-center mb-10">
+                        <h1 className="text-2xl font-serif font-black tracking-tight">강릉분원 업무수첩</h1>
+                        <Navigation viewMode={viewMode} setViewMode={setViewMode} />
+                    </header>
+                    <main className="flex-1 border border-gray-200 bg-white shadow-2xl rounded-2xl p-8 relative overflow-hidden">
+                        {viewMode === 'monthly' && <MonthlyView currentDate={currentDate} setCurrentDate={setCurrentDate} setViewMode={setViewMode} />}
+                        {viewMode === 'daily' && <DailyView currentDate={currentDate} setViewMode={setViewMode} todos={todos} addTodo={addTodo} toggleTodo={toggleTodo} deleteTodo={deleteTodo} />}
+                        {viewMode !== 'monthly' && viewMode !== 'daily' && (
+                            <div className="h-full flex items-center justify-center text-gray-300 font-bold uppercase tracking-widest">
+                                {viewMode} View Coming Soon
+                            </div>
+                        )}
+                    </main>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+
+    </script>
+</body>
+
+</html>
