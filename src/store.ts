@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { format } from 'date-fns';
 
 
@@ -14,6 +15,7 @@ interface AppState {
 
     currentDate: Date;
     todos: Todo[];
+    drawings: Record<string, string>; // 날짜(yyyy-MM-dd)를 키로, 캔버스 이미지(Data URL)를 값으로 저장
 
     // Actions
 
@@ -21,33 +23,52 @@ interface AppState {
     addTodo: (date: Date, text: string) => void;
     toggleTodo: (id: string) => void;
     deleteTodo: (id: string) => void;
+    saveDrawing: (dateStr: string, dataUrl: string) => void;
+    clearDrawing: (dateStr: string) => void;
 }
 
-export const useStore = create<AppState>((set) => ({
+export const useStore = create<AppState>()(
+    persist(
+        (set) => ({
+            currentDate: new Date(),
+            todos: [],
+            drawings: {}, // 초기 판서 객체
 
-    currentDate: new Date(),
-    todos: [], // 초기 메모/할일 배열
+            setCurrentDate: (date) => set({ currentDate: date }),
 
+            addTodo: (date, text) => set((state) => {
+                const newTodo: Todo = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    date: format(date, 'yyyy-MM-dd'),
+                    text,
+                    isCompleted: false
+                };
+                return { todos: [...state.todos, newTodo] };
+            }),
 
-    setCurrentDate: (date) => set({ currentDate: date }),
+            toggleTodo: (id) => set((state) => ({
+                todos: state.todos.map(todo =>
+                    todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
+                )
+            })),
 
-    addTodo: (date, text) => set((state) => {
-        const newTodo: Todo = {
-            id: Math.random().toString(36).substr(2, 9),
-            date: format(date, 'yyyy-MM-dd'),
-            text,
-            isCompleted: false
-        };
-        return { todos: [...state.todos, newTodo] };
-    }),
+            deleteTodo: (id) => set((state) => ({
+                todos: state.todos.filter(todo => todo.id !== id)
+            })),
 
-    toggleTodo: (id) => set((state) => ({
-        todos: state.todos.map(todo =>
-            todo.id === id ? { ...todo, isCompleted: !todo.isCompleted } : todo
-        )
-    })),
+            saveDrawing: (dateStr, dataUrl) => set((state) => ({
+                drawings: { ...state.drawings, [dateStr]: dataUrl }
+            })),
 
-    deleteTodo: (id) => set((state) => ({
-        todos: state.todos.filter(todo => todo.id !== id)
-    }))
-}));
+            clearDrawing: (dateStr) => set((state) => {
+                const newDrawings = { ...state.drawings };
+                delete newDrawings[dateStr];
+                return { drawings: newDrawings };
+            })
+        }),
+        {
+            name: 'gangneung-diary-storage', // 로컬 스토리지에 저장될 키 이름
+            partialize: (state) => ({ todos: state.todos, drawings: state.drawings }), // 날짜(currentDate)는 제외하고 데이터만 저장
+        }
+    )
+);
