@@ -13,7 +13,7 @@ import {
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 
 export const WeeklyView = () => {
-    const { currentDate, setCurrentDate } = useStore();
+    const { currentDate, setCurrentDate, todos } = useStore();
     const navigate = useNavigate();
 
     const handlePrevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
@@ -89,10 +89,22 @@ export const WeeklyView = () => {
                                 </div>
                             </div>
 
-                            <div className="flex-1 flex flex-col p-3 pt-4 space-y-5 bg-transparent">
-                                {Array.from({ length: 8 }).map((_, lineIdx) => (
-                                    <div key={lineIdx} className="w-full border-b border-paper-200/70 opacity-60 group-hover:border-paper-300 transition-colors"></div>
+                            <div className="flex-1 flex flex-col p-3 pt-4 space-y-3 bg-transparent relative">
+                                {todos.filter(t => t.date === format(date, 'yyyy-MM-dd')).map((todo) => (
+                                    <div key={todo.id} className="relative z-10 flex items-start gap-1.5">
+                                        <div className={`mt-1 min-w-[4px] h-[4px] rounded-full ${todo.isCompleted ? 'bg-ink-300' : 'bg-accent-blue'}`}></div>
+                                        <span className={`text-xs font-medium leading-tight line-clamp-2 ${todo.isCompleted ? 'line-through text-ink-300' : 'text-ink-700'}`}>
+                                            {todo.text}
+                                        </span>
+                                    </div>
                                 ))}
+
+                                {/* 남은 공간 채우기 선 장식 */}
+                                <div className="absolute inset-x-3 inset-y-0 pt-4 pointer-events-none flex flex-col space-y-5 opacity-40">
+                                    {Array.from({ length: 8 }).map((_, lineIdx) => (
+                                        <div key={lineIdx} className="w-full border-b border-paper-200/70 group-hover:border-paper-300 transition-colors"></div>
+                                    ))}
+                                </div>
 
                                 <div className="mt-auto pt-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity justify-center text-accent-blue">
                                     <CalendarDays size={14} />

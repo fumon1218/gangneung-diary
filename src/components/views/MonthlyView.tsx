@@ -15,7 +15,7 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export const MonthlyView = () => {
-    const { currentDate, setCurrentDate } = useStore();
+    const { currentDate, setCurrentDate, todos } = useStore();
     const navigate = useNavigate();
 
     const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
@@ -53,11 +53,25 @@ export const MonthlyView = () => {
                             {formattedDate}
                         </span>
                     </div>
-                    {/* 일정/투두 요약 위치 */}
-                    <div className="mt-2 space-y-1">
-                        <div className="diary-line pb-4 opacity-50 group-hover:border-paper-300 transition-colors"></div>
-                        <div className="diary-line pb-4 opacity-50 group-hover:border-paper-300 transition-colors"></div>
-                        <div className="diary-line pb-4 opacity-50 group-hover:border-paper-300 transition-colors"></div>
+                    {/* 일정/투두 목록 표시 */}
+                    <div className="mt-2 flex flex-col gap-1 w-full overflow-hidden">
+                        {todos
+                            .filter(t => t.date === format(cloneDay, 'yyyy-MM-dd'))
+                            .slice(0, 3) // 월간 뷰에서는 최대 3개만 표시
+                            .map(todo => (
+                                <div key={todo.id} className="flex items-center gap-1.5 px-0.5 w-full">
+                                    <div className={`w-1 h-1 rounded-full shrink-0 ${todo.isCompleted ? 'bg-ink-300' : 'bg-accent-blue'}`}></div>
+                                    <span className={`text-[10px] font-medium truncate w-full ${todo.isCompleted ? 'line-through text-ink-300' : 'text-ink-600'}`}>
+                                        {todo.text}
+                                    </span>
+                                </div>
+                            ))
+                        }
+                        {todos.filter(t => t.date === format(cloneDay, 'yyyy-MM-dd')).length > 3 && (
+                            <div className="text-[9px] text-ink-400 font-bold pl-2.5">
+                                +{todos.filter(t => t.date === format(cloneDay, 'yyyy-MM-dd')).length - 3} more
+                            </div>
+                        )}
                     </div>
                 </div>
             );
