@@ -15,6 +15,7 @@ import {
     isToday
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getKoreanHoliday } from '../../utils/holidays';
 
 export const YearlyView = () => {
     const { currentDate, setCurrentDate } = useStore();
@@ -46,6 +47,7 @@ export const YearlyView = () => {
                 formattedDate = format(day, "d");
                 const cloneDay = day;
                 const isCurrentMonth = isSameMonth(day, monthStart);
+                const { isHoliday } = getKoreanHoliday(day);
 
                 days.push(
                     <div
@@ -56,7 +58,7 @@ export const YearlyView = () => {
                             navigate('/daily'); // 일간 뷰로 바로가기
                         }}
                         className={`text-center py-1 text-[11px] font-medium cursor-pointer rounded-sm transition-colors
-              ${!isCurrentMonth ? 'text-paper-300 opacity-50' : i === 0 ? 'text-accent-red font-bold' : 'text-ink-700 hover:bg-paper-100'}
+              ${!isCurrentMonth ? 'text-paper-300 opacity-50' : isHoliday ? 'text-accent-red font-bold' : 'text-ink-700 hover:bg-paper-100'}
               ${isToday(day) ? 'bg-accent-blue/10 text-accent-blue font-bold ring-1 ring-accent-blue/50' : ''}
             `}
                     >

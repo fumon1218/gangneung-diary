@@ -13,6 +13,7 @@ import {
     isToday
 } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getKoreanHoliday } from '../../utils/holidays';
 
 export const MonthlyView = () => {
     const { currentDate, setCurrentDate, todos } = useStore();
@@ -36,6 +37,7 @@ export const MonthlyView = () => {
         for (let i = 0; i < 7; i++) {
             formattedDate = format(day, dateFormat);
             const cloneDay = day;
+            const { isHoliday, name: holidayName } = getKoreanHoliday(day);
 
             days.push(
                 <div
@@ -49,9 +51,16 @@ export const MonthlyView = () => {
           `}
                 >
                     <div className="flex justify-between items-start">
-                        <span className={`text-sm font-semibold ${isToday(day) ? 'bg-accent-blue text-white w-6 h-6 rounded-full flex items-center justify-center' : ''} ${i === 0 ? 'text-accent-red' : ''}`}>
-                            {formattedDate}
-                        </span>
+                        <div className="flex flex-col">
+                            <span className={`text-sm font-semibold ${isToday(day) ? 'bg-accent-blue text-white w-6 h-6 rounded-full flex items-center justify-center' : ''} ${isHoliday ? 'text-accent-red' : ''}`}>
+                                {formattedDate}
+                            </span>
+                            {holidayName && (
+                                <span className={`text-[9px] mt-0.5 font-bold ${!isSameMonth(day, monthStart) ? 'text-accent-red/50' : 'text-accent-red'}`}>
+                                    {holidayName}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     {/* 일정/투두 목록 표시 */}
                     <div className="mt-2 flex flex-col gap-1 w-full overflow-hidden">

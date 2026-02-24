@@ -11,6 +11,7 @@ import {
     isSameMonth
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { getKoreanHoliday } from '../../utils/holidays';
 
 export const WeeklyView = () => {
     const { currentDate, setCurrentDate, todos } = useStore();
@@ -61,58 +62,69 @@ export const WeeklyView = () => {
 
                 {/* 요일별 컬럼 (7개) */}
                 <div className="w-full grid grid-cols-7 gap-3 md:gap-4 overflow-x-auto custom-scrollbar">
-                    {weekDays.map((date, i) => (
-                        <div
-                            key={date.toString()}
-                            className={`flex flex-col min-w-[140px] border border-paper-200/50 rounded-xl overflow-hidden transition-colors hover:border-paper-300 hover:shadow-sm bg-white group cursor-pointer
+                    {weekDays.map((date) => {
+                        const { isHoliday, name: holidayName } = getKoreanHoliday(date);
+
+                        return (
+                            <div
+                                key={date.toString()}
+                                className={`flex flex-col min-w-[140px] border border-paper-200/50 rounded-xl overflow-hidden transition-colors hover:border-paper-300 hover:shadow-sm bg-white group cursor-pointer
                 ${isToday(date) ? 'ring-2 ring-accent-blue/30 border-transparent bg-blue-50/10' : ''}
               `}
-                            onClick={() => {
-                                setCurrentDate(date);
-                                navigate('/daily');
-                            }}
-                        >
-                            <div className="text-center py-3 border-b border-paper-200/50 bg-paper-50/50 relative">
-                                {/* 오늘 표시 뱃지 */}
-                                {isToday(date) && <div className="absolute top-0 inset-x-0 h-1 bg-accent-blue"></div>}
+                                onClick={() => {
+                                    setCurrentDate(date);
+                                    navigate('/daily');
+                                }}
+                            >
+                                <div className="text-center py-3 border-b border-paper-200/50 bg-paper-50/50 relative">
+                                    {/* 오늘 표시 뱃지 */}
+                                    {isToday(date) && <div className="absolute top-0 inset-x-0 h-1 bg-accent-blue"></div>}
 
-                                <p className={`text-[10px] font-extrabold uppercase tracking-widest mb-1 ${i === 0 ? 'text-accent-red' : 'text-ink-400'}`}>
-                                    {format(date, 'EEEE')}
-                                </p>
-                                <div className="flex items-center justify-center gap-1">
-                                    {!isSameMonth(date, weekStart) && i !== 0 && (
-                                        <span className="text-xs font-bold text-ink-400">{format(date, 'M')}.</span>
-                                    )}
-                                    <span className={`text-2xl font-serif font-black ${isToday(date) ? 'text-accent-blue' : i === 0 ? 'text-accent-red' : 'text-ink-900'}`}>
-                                        {format(date, 'd')}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="flex-1 flex flex-col p-3 pt-4 space-y-3 bg-transparent relative">
-                                {todos.filter(t => t.date === format(date, 'yyyy-MM-dd')).map((todo) => (
-                                    <div key={todo.id} className="relative z-10 flex items-start gap-1.5">
-                                        <div className={`mt-1 min-w-[4px] h-[4px] rounded-full ${todo.isCompleted ? 'bg-ink-300' : 'bg-accent-blue'}`}></div>
-                                        <span className={`text-xs font-medium leading-tight line-clamp-2 ${todo.isCompleted ? 'line-through text-ink-300' : 'text-ink-700'}`}>
-                                            {todo.text}
-                                        </span>
+                                    <p className={`text-[10px] font-extrabold uppercase tracking-widest mb-1 ${isHoliday ? 'text-accent-red' : 'text-ink-400'}`}>
+                                        {format(date, 'EEEE')}
+                                    </p>
+                                    <div className="flex flex-col items-center justify-center gap-0.5">
+                                        <div className="flex items-center justify-center gap-1">
+                                            {!isSameMonth(date, weekStart) && !isHoliday && (
+                                                <span className="text-xs font-bold text-ink-400">{format(date, 'M')}.</span>
+                                            )}
+                                            <span className={`text-2xl font-serif font-black ${isToday(date) ? 'text-accent-blue' : isHoliday ? 'text-accent-red' : 'text-ink-900'}`}>
+                                                {format(date, 'd')}
+                                            </span>
+                                        </div>
+                                        {holidayName && (
+                                            <span className="text-[9px] text-accent-red font-bold leading-tight px-1 text-center truncate w-full">
+                                                {holidayName}
+                                            </span>
+                                        )}
                                     </div>
-                                ))}
-
-                                {/* 남은 공간 채우기 선 장식 */}
-                                <div className="absolute inset-x-3 inset-y-0 pt-4 pointer-events-none flex flex-col space-y-5 opacity-40">
-                                    {Array.from({ length: 8 }).map((_, lineIdx) => (
-                                        <div key={lineIdx} className="w-full border-b border-paper-200/70 group-hover:border-paper-300 transition-colors"></div>
-                                    ))}
                                 </div>
 
-                                <div className="mt-auto pt-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity justify-center text-accent-blue">
-                                    <CalendarDays size={14} />
-                                    <span className="text-xs font-bold">상세 보기</span>
+                                <div className="flex-1 flex flex-col p-3 pt-4 space-y-3 bg-transparent relative">
+                                    {todos.filter(t => t.date === format(date, 'yyyy-MM-dd')).map((todo) => (
+                                        <div key={todo.id} className="relative z-10 flex items-start gap-1.5">
+                                            <div className={`mt-1 min-w-[4px] h-[4px] rounded-full ${todo.isCompleted ? 'bg-ink-300' : 'bg-accent-blue'}`}></div>
+                                            <span className={`text-xs font-medium leading-tight line-clamp-2 ${todo.isCompleted ? 'line-through text-ink-300' : 'text-ink-700'}`}>
+                                                {todo.text}
+                                            </span>
+                                        </div>
+                                    ))}
+
+                                    {/* 남은 공간 채우기 선 장식 */}
+                                    <div className="absolute inset-x-3 inset-y-0 pt-4 pointer-events-none flex flex-col space-y-5 opacity-40">
+                                        {Array.from({ length: 8 }).map((_, lineIdx) => (
+                                            <div key={lineIdx} className="w-full border-b border-paper-200/70 group-hover:border-paper-300 transition-colors"></div>
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-auto pt-4 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity justify-center text-accent-blue">
+                                        <CalendarDays size={14} />
+                                        <span className="text-xs font-bold">상세 보기</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>

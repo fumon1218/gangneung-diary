@@ -3,6 +3,7 @@ import { useStore } from '../../store';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Check, Plus, Trash2, CalendarDays } from 'lucide-react';
+import { getKoreanHoliday } from '../../utils/holidays';
 
 export const DailyView = () => {
     const { currentDate, todos, addTodo, toggleTodo, deleteTodo } = useStore();
@@ -11,6 +12,7 @@ export const DailyView = () => {
 
     const dateStr = format(currentDate, 'yyyy-MM-dd');
     const dailyTodos = todos.filter(t => t.date === dateStr);
+    const { isHoliday, name: holidayName } = getKoreanHoliday(currentDate);
 
     const handleAdd = (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,10 +26,17 @@ export const DailyView = () => {
             {/* 상단 헤더 영역 */}
             <div className="flex items-end justify-between mb-8 pb-4 border-b border-paper-200">
                 <div>
-                    <h2 className="text-4xl font-extrabold text-ink-900 font-serif tracking-tight">
-                        {format(currentDate, "d")}
-                    </h2>
-                    <p className="text-lg font-medium text-ink-500 mt-1 uppercase tracking-widest">
+                    <div className="flex items-center gap-3">
+                        <h2 className={`text-4xl font-extrabold font-serif tracking-tight ${isHoliday ? 'text-accent-red' : 'text-ink-900'}`}>
+                            {format(currentDate, "d")}
+                        </h2>
+                        {holidayName && (
+                            <span className="px-2 py-0.5 mt-1 text-xs font-bold bg-accent-red/10 text-accent-red border border-accent-red/20 rounded-md whitespace-nowrap">
+                                {holidayName}
+                            </span>
+                        )}
+                    </div>
+                    <p className={`text-lg font-medium mt-1 uppercase tracking-widest ${isHoliday ? 'text-accent-red/80' : 'text-ink-500'}`}>
                         {format(currentDate, "EEEE, MMMM yyyy")}
                     </p>
                 </div>
