@@ -1,7 +1,7 @@
 {
   "name": "gangneung-diary",
   "private": true,
-  "version": "1.3.1",
+  "version": "1.4.0",
   "type": "module",
   "homepage": "https://fumon1218.github.io/gangneung-diary",
   "scripts": {
@@ -39,6 +39,7 @@
     "tailwindcss": "^4.2.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.48.0",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }
