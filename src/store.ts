@@ -15,7 +15,8 @@ interface AppState {
 
     currentDate: Date;
     todos: Todo[];
-    drawings: Record<string, string>; // 날짜(yyyy-MM-dd)를 키로, 캔버스 이미지(Data URL)를 값으로 저장
+    drawings: Record<string, string>;
+    weeklyViewMode: 'tablet' | 'mobile';
 
     // Actions
 
@@ -25,6 +26,7 @@ interface AppState {
     deleteTodo: (id: string) => void;
     saveDrawing: (dateStr: string, dataUrl: string) => void;
     clearDrawing: (dateStr: string) => void;
+    setWeeklyViewMode: (mode: 'tablet' | 'mobile') => void;
 }
 
 export const useStore = create<AppState>()(
@@ -32,7 +34,8 @@ export const useStore = create<AppState>()(
         (set) => ({
             currentDate: new Date(),
             todos: [],
-            drawings: {}, // 초기 판서 객체
+            drawings: {},
+            weeklyViewMode: 'tablet', // 기본 모드는 태블릿(가로 넓게)
 
             setCurrentDate: (date) => set({ currentDate: date }),
 
@@ -64,11 +67,17 @@ export const useStore = create<AppState>()(
                 const newDrawings = { ...state.drawings };
                 delete newDrawings[dateStr];
                 return { drawings: newDrawings };
-            })
+            }),
+
+            setWeeklyViewMode: (mode) => set({ weeklyViewMode: mode })
         }),
         {
-            name: 'gangneung-diary-storage', // 로컬 스토리지에 저장될 키 이름
-            partialize: (state) => ({ todos: state.todos, drawings: state.drawings }), // 날짜(currentDate)는 제외하고 데이터만 저장
+            name: 'gangneung-diary-storage',
+            partialize: (state) => ({
+                todos: state.todos,
+                drawings: state.drawings,
+                weeklyViewMode: state.weeklyViewMode
+            }),
         }
     )
 );

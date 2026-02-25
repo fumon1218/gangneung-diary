@@ -10,12 +10,12 @@ import {
     isToday,
     isSameMonth
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, Smartphone, Tablet } from 'lucide-react';
 import { getKoreanHoliday } from '../../utils/holidays';
 import { DrawingCanvas } from '../common/DrawingCanvas';
 
 export const WeeklyView = () => {
-    const { currentDate, setCurrentDate, todos } = useStore();
+    const { currentDate, setCurrentDate, todos, weeklyViewMode, setWeeklyViewMode } = useStore();
     const navigate = useNavigate();
 
     const handlePrevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
@@ -47,6 +47,24 @@ export const WeeklyView = () => {
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
+                    {/* 뷰 모드 전환 토글 */}
+                    <div className="flex bg-paper-100 p-1 rounded-full border border-paper-200 mr-2">
+                        <button
+                            onClick={() => setWeeklyViewMode('tablet')}
+                            className={`p-1.5 rounded-full transition-colors ${weeklyViewMode === 'tablet' ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
+                            title="태블릿 모드 (가로 나열)"
+                        >
+                            <Tablet size={16} />
+                        </button>
+                        <button
+                            onClick={() => setWeeklyViewMode('mobile')}
+                            className={`p-1.5 rounded-full transition-colors ${weeklyViewMode === 'mobile' ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
+                            title="모바일 모드 (세로 나열)"
+                        >
+                            <Smartphone size={16} />
+                        </button>
+                    </div>
+
                     <button onClick={handlePrevWeek} className="p-2 hover:bg-paper-100 rounded-full text-ink-500 transition-colors">
                         <ChevronLeft size={20} />
                     </button>
@@ -60,17 +78,18 @@ export const WeeklyView = () => {
             </div>
 
             {/* 확장 가능한 주간 그리드 영역 (세로 스크롤 지원) */}
-            <div className="flex-1 flex gap-4 h-full min-h-0 bg-white border border-paper-200 rounded-2xl p-4 md:p-6 shadow-sm overflow-y-auto custom-scrollbar">
+            <div className={`flex-1 flex gap-4 h-full min-h-0 bg-white border border-paper-200 rounded-2xl p-4 md:p-6 shadow-sm overflow-y-auto custom-scrollbar ${weeklyViewMode === 'mobile' ? 'flex-col' : ''}`}>
 
-                {/* 요일별 컬럼 (7개) */}
-                <div className="w-full grid grid-cols-7 gap-3 md:gap-4 overflow-x-auto min-h-[600px]">
+                {/* 요일별 컬럼 (태블릿: 7개 가로 나열, 모바일: 세로 한 줄 나열) */}
+                <div className={`w-full ${weeklyViewMode === 'tablet' ? 'grid grid-cols-7 gap-3 md:gap-4 overflow-x-auto min-h-[600px]' : 'flex flex-col gap-6'}`}>
                     {weekDays.map((date) => {
                         const { isHoliday, name: holidayName } = getKoreanHoliday(date);
 
                         return (
                             <div
                                 key={date.toString()}
-                                className={`flex flex-col min-w-[140px] border border-paper-200/50 rounded-xl overflow-hidden bg-white
+                                className={`flex flex-col border border-paper-200/50 rounded-xl overflow-hidden bg-white
+                ${weeklyViewMode === 'tablet' ? 'min-w-[140px]' : 'w-full min-h-[500px] shadow-sm'}
                 ${isToday(date) ? 'ring-2 ring-accent-blue/30 border-transparent bg-blue-50/10' : ''}
               `}
                             >
@@ -137,7 +156,7 @@ export const WeeklyView = () => {
                                     <div className="absolute inset-0 z-10 w-full h-full">
                                         {/* CSS 캔버스 해상도 고정 트릭 (예: 140x500 픽셀 기준) 
                                             실제 컨테이너 크기에 맞춰 width/height는 Canvas 내부로 전달됨 */}
-                                        <DrawingCanvas dateStr={format(date, 'yyyy-MM-dd')} width={200} height={700} />
+                                        <DrawingCanvas dateStr={format(date, 'yyyy-MM-dd')} width={weeklyViewMode === 'mobile' ? 600 : 200} height={700} />
                                     </div>
 
                                 </div>
