@@ -42,6 +42,8 @@ const Navigation = () => {
   );
 };
 
+const appVersion = import.meta.env.VITE_APP_VERSION || '1.1.0';
+
 function App() {
   return (
     <div className="min-h-screen bg-[var(--color-paper-50)] flex flex-col items-center py-6 px-4 md:py-10">
@@ -61,6 +63,11 @@ function App() {
           <Route path="/daily" element={<DailyView />} />
         </Routes>
       </main>
+
+      {/* 우측 하단 버전 표시 배지 */}
+      <div className="fixed bottom-4 right-4 px-2 py-1 text-[11px] font-bold text-ink-300 font-mono tracking-wider pointer-events-none select-none z-50 opacity-60">
+        v{appVersion}
+      </div>
     </div>
   );
 }
