@@ -46,6 +46,7 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
                 const isCorrect = verifyPin(inputPin);
                 if (isCorrect) {
                     // 해제 처리
+                    setInputPin('');
                     setAppPin(null);
                     alert('앱 잠금이 해제되었습니다.');
                     onClose();
@@ -64,6 +65,8 @@ export const SecuritySettingsModal: React.FC<SecuritySettingsModalProps> = ({ is
             // 3) 새 비밀번호 2차 확인 단계
             else if (step === 'confirm_new') {
                 if (inputPin === newPin) {
+                    setInputPin('');
+                    setStep('none');
                     setAppPin(newPin);
                     alert('새로운 잠금 비밀번호가 설정되었습니다.');
                     onClose();

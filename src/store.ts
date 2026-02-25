@@ -121,9 +121,9 @@ export const useStore = create<AppState>()(
             }),
             onRehydrateStorage: () => (state) => {
                 // 저장소에서 데이터를 성공적으로 다 불러온 뒤 실행되는 콜백. 
-                // 만약 appPin이 존재한다면 무조건 isLocked를 true로 바꾸어 화면을 일단 가리게 함.
+                // 만약 appPin이 존재한다면 즉시 (hydrate 완료 후) isLocked를 true로 변경하여 리액트 컴포넌트가 잠금 렌더링을 알도록 합니다.
                 if (state && state.appPin !== null) {
-                    state.isLocked = true;
+                    useStore.setState({ isLocked: true });
                 }
             }
         }

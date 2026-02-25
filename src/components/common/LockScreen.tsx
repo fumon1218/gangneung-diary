@@ -17,6 +17,8 @@ export const LockScreen: React.FC = () => {
                     setInputPin('');
                     setError(false);
                 }, 500); // 0.5초(흔들림 애니메이션 등의 시간) 후 입력칸 초기화
+            } else {
+                setInputPin('');
             }
         }
     }, [inputPin, verifyPin]);
@@ -49,8 +51,8 @@ export const LockScreen: React.FC = () => {
                         <div
                             key={index}
                             className={`w-4 h-4 rounded-full transition-all duration-200 ${index < inputPin.length
-                                    ? error ? 'bg-accent-red' : 'bg-accent-blue scale-110'
-                                    : 'bg-paper-200'
+                                ? error ? 'bg-accent-red' : 'bg-accent-blue scale-110'
+                                : 'bg-paper-200'
                                 }`}
                         />
                     ))}
