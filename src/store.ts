@@ -16,6 +16,7 @@ interface AppState {
     currentDate: Date;
     todos: Todo[];
     drawings: Record<string, string>;
+    monthlyNotes: Record<string, string>; // yyyy-MM
     weeklyViewMode: 'tablet' | 'mobile';
 
     // Actions
@@ -26,6 +27,7 @@ interface AppState {
     deleteTodo: (id: string) => void;
     saveDrawing: (dateStr: string, dataUrl: string) => void;
     clearDrawing: (dateStr: string) => void;
+    setMonthlyNote: (monthStr: string, text: string) => void;
     setWeeklyViewMode: (mode: 'tablet' | 'mobile') => void;
 }
 
@@ -35,6 +37,7 @@ export const useStore = create<AppState>()(
             currentDate: new Date(),
             todos: [],
             drawings: {},
+            monthlyNotes: {},
             weeklyViewMode: 'tablet', // 기본 모드는 태블릿(가로 넓게)
 
             setCurrentDate: (date) => set({ currentDate: date }),
@@ -69,6 +72,10 @@ export const useStore = create<AppState>()(
                 return { drawings: newDrawings };
             }),
 
+            setMonthlyNote: (monthStr, text) => set((state) => ({
+                monthlyNotes: { ...state.monthlyNotes, [monthStr]: text }
+            })),
+
             setWeeklyViewMode: (mode) => set({ weeklyViewMode: mode })
         }),
         {
@@ -76,6 +83,7 @@ export const useStore = create<AppState>()(
             partialize: (state) => ({
                 todos: state.todos,
                 drawings: state.drawings,
+                monthlyNotes: state.monthlyNotes,
                 weeklyViewMode: state.weeklyViewMode
             }),
         }

@@ -12,15 +12,21 @@ import {
     addDays,
     isToday
 } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pen, Type } from 'lucide-react';
 import { getKoreanHoliday } from '../../utils/holidays';
+import { useState } from 'react';
+import { DrawingCanvas } from '../common/DrawingCanvas';
 
 export const MonthlyView = () => {
-    const { currentDate, setCurrentDate, todos } = useStore();
+    const { currentDate, setCurrentDate, todos, monthlyNotes, setMonthlyNote } = useStore();
     const navigate = useNavigate();
 
     const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1));
     const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+
+    const [isTextMode, setIsTextMode] = useState(true);
+    const monthKey = format(currentDate, 'yyyy-MM');
+    const currentNoteObj = monthlyNotes?.[monthKey] || '';
 
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
@@ -122,13 +128,53 @@ export const MonthlyView = () => {
 
             <div className="flex-1 flex gap-4 h-full min-h-0">
 
-                {/* 아날로그 다이어리처럼 좌측 자유 메모/주간 목표 라인 */}
-                <div className="hidden lg:flex w-48 border border-paper-200 rounded-xl bg-white p-4 flex-col shadow-sm">
-                    <h3 className="text-xs font-bold text-ink-400 mb-4 uppercase tracking-wider text-center">Monthly Notes</h3>
-                    <div className="flex-1 flex flex-col pt-2">
-                        {Array.from({ length: 15 }).map((_, i) => (
-                            <div key={i} className="diary-line flex-1 min-h-[2rem]"></div>
-                        ))}
+                {/* 아날로그 다이어리처럼 좌측 자유 메모/주간 목표 라인 + 펜 판서 영역 */}
+                <div className="hidden lg:flex w-52 border border-paper-200 rounded-xl bg-white p-4 flex-col shadow-sm relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-4 relative z-20 bg-white/50 backdrop-blur-sm rounded-lg px-2">
+                        <h3 className="text-xs font-bold text-ink-400 uppercase tracking-wider">Monthly Notes</h3>
+                        <div className="flex bg-paper-100 p-0.5 rounded-md border border-paper-200">
+                            <button
+                                onClick={() => setIsTextMode(true)}
+                                className={`p-1 rounded transition-colors ${isTextMode ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
+                                title="텍스트 입력 모드"
+                            >
+                                <Type size={14} />
+                            </button>
+                            <button
+                                onClick={() => setIsTextMode(false)}
+                                className={`p-1 rounded transition-colors ${!isTextMode ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
+                                title="펜 그리기 모드"
+                            >
+                                <Pen size={14} />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 flex flex-col pt-2 relative">
+                        {/* 1. 배경 줄무늬 */}
+                        <div className="absolute inset-0 z-0 pointer-events-none w-full">
+                            {Array.from({ length: 15 }).map((_, i) => (
+                                <div key={i} className="diary-line w-full h-[2rem]"></div>
+                            ))}
+                        </div>
+
+                        {/* 2. 텍스트 입력 레이어 */}
+                        <textarea
+                            value={currentNoteObj}
+                            onChange={(e) => setMonthlyNote(monthKey, e.target.value)}
+                            className={`absolute inset-0 z-10 w-full h-full bg-transparent resize-none outline-none text-ink-700 text-sm font-medium leading-[2rem] px-2 py-0 custom-scrollbar ${!isTextMode ? 'pointer-events-none' : ''}`}
+                            placeholder={isTextMode ? "메모를 남겨보세요..." : ""}
+                            style={{
+                                lineHeight: '2rem',
+                                backgroundAttachment: 'local'
+                            }}
+                        />
+
+                        {/* 3. 펜 그리기 레이어 */}
+                        <div className={`absolute inset-0 z-10 w-full h-full ${isTextMode ? 'pointer-events-none' : ''}`}>
+                            {/* width: 200 정도로 임의 추산, 높이는 부모에 맞춰지도록 내부에서 100% 처리, 해상도는 200x600 부여 */}
+                            <DrawingCanvas dateStr={`${monthKey}-note`} width={200} height={600} />
+                        </div>
                     </div>
                 </div>
 
