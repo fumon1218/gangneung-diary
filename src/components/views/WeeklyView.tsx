@@ -10,9 +10,23 @@ import {
     isToday,
     isSameMonth
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Maximize2, Smartphone, Tablet } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { getKoreanHoliday } from '../../utils/holidays';
 import { DrawingCanvas } from '../common/DrawingCanvas';
+
+const WideTabletIcon = ({ size = 18 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="16" rx="3" ry="3" />
+        <line x1="12" x2="12.01" y1="16" y2="16" strokeWidth="3.5" />
+    </svg>
+);
+
+const NarrowPhoneIcon = ({ size = 18 }: { size?: number }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="7" y="2" width="10" height="20" rx="3" ry="3" />
+        <line x1="12" x2="12.01" y1="18" y2="18" strokeWidth="3.5" />
+    </svg>
+);
 
 export const WeeklyView = () => {
     const { currentDate, setCurrentDate, todos, weeklyViewMode, setWeeklyViewMode } = useStore();
@@ -52,16 +66,16 @@ export const WeeklyView = () => {
                         <button
                             onClick={() => setWeeklyViewMode('tablet')}
                             className={`p-1.5 rounded-full transition-colors ${weeklyViewMode === 'tablet' ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
-                            title="태블릿 모드 (가로 나열)"
+                            title="태블릿 모드 (가로 7일 나열)"
                         >
-                            <Tablet size={16} />
+                            <WideTabletIcon size={18} />
                         </button>
                         <button
                             onClick={() => setWeeklyViewMode('mobile')}
                             className={`p-1.5 rounded-full transition-colors ${weeklyViewMode === 'mobile' ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
-                            title="모바일 모드 (세로 나열)"
+                            title="모바일 모드 (세로 1줄 나열)"
                         >
-                            <Smartphone size={16} />
+                            <NarrowPhoneIcon size={18} />
                         </button>
                     </div>
 
