@@ -126,10 +126,10 @@ export const MonthlyView = () => {
                 </div>
             </div>
 
-            <div className="flex-1 flex gap-4 h-full min-h-0">
+            <div className="flex-1 flex flex-col xl:flex-row gap-4 h-full min-h-0 overflow-y-auto custom-scrollbar xl:overflow-hidden pb-4 xl:pb-0">
 
                 {/* 아날로그 다이어리처럼 좌측 자유 메모/주간 목표 라인 + 펜 판서 영역 */}
-                <div className="hidden lg:flex w-52 border border-paper-200 rounded-xl bg-white p-4 flex-col shadow-sm relative overflow-hidden">
+                <div className="flex w-full xl:w-64 border border-paper-200 rounded-xl bg-white p-4 flex-col shadow-sm relative overflow-hidden shrink-0 min-h-[400px] xl:min-h-0">
                     <div className="flex justify-between items-center mb-4 relative z-20 bg-white/50 backdrop-blur-sm rounded-lg px-2">
                         <h3 className="text-xs font-bold text-ink-400 uppercase tracking-wider">Monthly Notes</h3>
                         <div className="flex bg-paper-100 p-0.5 rounded-md border border-paper-200">
@@ -179,7 +179,7 @@ export const MonthlyView = () => {
                 </div>
 
                 {/* 달력 그리드 */}
-                <div className="flex-1 border border-paper-200 rounded-xl bg-white flex flex-col shadow-sm overflow-hidden">
+                <div className="flex-1 border border-paper-200 rounded-xl bg-white flex flex-col shadow-sm overflow-hidden min-h-[500px]">
                     <div className="grid grid-cols-7 border-b border-paper-200 bg-paper-50/50">
                         {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((day, idx) => (
                             <div key={day} className={`py-2.5 text-center text-xs font-bold ${idx === 0 ? 'text-accent-red' : 'text-ink-400'}`}>
