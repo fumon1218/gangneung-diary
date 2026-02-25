@@ -88,21 +88,28 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ dateStr, width, he
         saveDrawing(dateStr, dataUrl);
     };
 
-    // 마우스/터치 좌표 추출 헬퍼 (레티나 등 스케일링 무시하고 CSS 기준 좌표 추출)
+    // 마우스/터치 좌표 추출 헬퍼 (CSS 렌더링 크기와 실제 캔버스 해상도 간의 비율 보정 추가)
     const getCoordinates = (e: React.MouseEvent | React.TouchEvent, canvas: HTMLCanvasElement) => {
         const rect = canvas.getBoundingClientRect();
 
+        // 실제 화면에 표시되는 크기 대비 내부 캔버스 해상도의 비율 계산
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+
+        let clientX, clientY;
+
         if ('touches' in e) { // TouchEvent
-            return {
-                offsetX: e.touches[0].clientX - rect.left,
-                offsetY: e.touches[0].clientY - rect.top
-            };
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
         } else { // MouseEvent
-            return {
-                offsetX: (e as React.MouseEvent).clientX - rect.left,
-                offsetY: (e as React.MouseEvent).clientY - rect.top
-            };
+            clientX = (e as React.MouseEvent).clientX;
+            clientY = (e as React.MouseEvent).clientY;
         }
+
+        return {
+            offsetX: (clientX - rect.left) * scaleX,
+            offsetY: (clientY - rect.top) * scaleY
+        };
     };
 
     const handleClear = () => {
