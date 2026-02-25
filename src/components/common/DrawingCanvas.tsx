@@ -63,13 +63,17 @@ export const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ dateStr, width, he
         if (!ctx) return;
 
         const { offsetX, offsetY } = getCoordinates(e, canvas);
+        const rect = canvas.getBoundingClientRect();
+        const scale = canvas.width / rect.width; // 해상도 대비 화면 렌더링 크기 비율 계산
 
         // 펜 스타일 설정
         ctx.lineTo(offsetX, offsetY);
         // 지우개 모드일 경우 destination-out으로 선을 투명하게 지움
         ctx.globalCompositeOperation = isEraser ? 'destination-out' : 'source-over';
         ctx.strokeStyle = isEraser ? 'rgba(0,0,0,1)' : '#1a202c'; // 잉크 색 (ink-900)
-        ctx.lineWidth = isEraser ? 20 : 2; // 지우개는 두껍게
+
+        // 기기나 해상도에 상관없이 시각적으로 일관된 펜 굵기를 유지하도록 스케일 보정
+        ctx.lineWidth = isEraser ? 20 * scale : 1.5 * scale;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.stroke();
