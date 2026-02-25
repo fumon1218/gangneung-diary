@@ -10,8 +10,9 @@ import {
     isToday,
     isSameMonth
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Maximize2, Pen, MousePointer2 } from 'lucide-react';
 import { getKoreanHoliday } from '../../utils/holidays';
+import { useState } from 'react';
 import { DrawingCanvas } from '../common/DrawingCanvas';
 
 const WideTabletIcon = ({ size = 18 }: { size?: number }) => (
@@ -31,6 +32,8 @@ const NarrowPhoneIcon = ({ size = 18 }: { size?: number }) => (
 export const WeeklyView = () => {
     const { currentDate, setCurrentDate, todos, weeklyViewMode, setWeeklyViewMode } = useStore();
     const navigate = useNavigate();
+
+    const [isDrawingMode, setIsDrawingMode] = useState(false);
 
     const handlePrevWeek = () => setCurrentDate(subWeeks(currentDate, 1));
     const handleNextWeek = () => setCurrentDate(addWeeks(currentDate, 1));
@@ -61,7 +64,25 @@ export const WeeklyView = () => {
                     </span>
                 </div>
                 <div className="flex items-center gap-2">
-                    {/* 뷰 모드 전환 토글 */}
+                    {/* 판서/스크롤 모드 전환 토글 (신규 추가) */}
+                    <div className="flex bg-paper-100 p-0.5 rounded-md border border-paper-200 mr-1 xl:mr-2">
+                        <button
+                            onClick={() => setIsDrawingMode(false)}
+                            className={`p-1 rounded transition-colors ${!isDrawingMode ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
+                            title="일반(스크롤) 모드"
+                        >
+                            <MousePointer2 size={16} />
+                        </button>
+                        <button
+                            onClick={() => setIsDrawingMode(true)}
+                            className={`p-1 rounded transition-colors ${isDrawingMode ? 'bg-white shadow-sm text-accent-blue' : 'text-ink-400 hover:text-ink-600'}`}
+                            title="펜 그리기 모드"
+                        >
+                            <Pen size={16} />
+                        </button>
+                    </div>
+
+                    {/* 뷰 모드 전환 토글 (태블릿/모바일) */}
                     <div className="flex bg-paper-100 p-1 rounded-full border border-paper-200 mr-2">
                         <button
                             onClick={() => setWeeklyViewMode('tablet')}
@@ -166,8 +187,8 @@ export const WeeklyView = () => {
                                         ))}
                                     </div>
 
-                                    {/* 3. 투명 판서 캔버스 컴포넌트 (최상단, 터치/드래그 전담) */}
-                                    <div className="absolute inset-0 z-10 w-full h-full">
+                                    {/* 3. 투명 판서 캔버스 컴포넌트 (최상단, 터치/드래그 제어) */}
+                                    <div className={`absolute inset-0 z-10 w-full h-full ${!isDrawingMode ? 'pointer-events-none' : ''}`}>
                                         {/* CSS 캔버스 해상도 고정 트릭 (예: 140x500 픽셀 기준) 
                                             실제 컨테이너 크기에 맞춰 width/height는 Canvas 내부로 전달됨 */}
                                         <DrawingCanvas dateStr={format(date, 'yyyy-MM-dd')} width={weeklyViewMode === 'mobile' ? 600 : 200} height={700} />
