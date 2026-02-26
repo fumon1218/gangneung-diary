@@ -2,18 +2,29 @@ import { useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { format } from 'date-fns';
 
+const safeGetNotificationPermission = () => {
+    try {
+        if (!('Notification' in window)) return 'denied';
+        return Notification.permission;
+    } catch (e) {
+        return 'denied';
+    }
+};
+
 export const useNotifications = () => {
     const { todos, notifiedTodoIds, addNotifiedTodoId, clearExpiredNotifications } = useStore();
     const isPermissionRequested = useRef(false);
 
     useEffect(() => {
         // 권한 요청 (최초 1회)
-        if ('Notification' in window && Notification.permission === 'default' && !isPermissionRequested.current) {
+        if (safeGetNotificationPermission() === 'default' && !isPermissionRequested.current) {
             isPermissionRequested.current = true;
             try {
-                const permissionPromise = Notification.requestPermission();
-                if (permissionPromise && typeof permissionPromise.catch === 'function') {
-                    permissionPromise.catch(console.warn);
+                if ('Notification' in window) {
+                    const permissionPromise = Notification.requestPermission();
+                    if (permissionPromise && typeof permissionPromise.catch === 'function') {
+                        permissionPromise.catch(console.warn);
+                    }
                 }
             } catch (error) {
                 console.warn('Error requesting notification permission:', error);
@@ -24,7 +35,7 @@ export const useNotifications = () => {
     useEffect(() => {
         // 타이머 설정 (매 분마다 검사)
         const checkNotifications = () => {
-            if (!('Notification' in window) || Notification.permission !== 'granted') return;
+            if (safeGetNotificationPermission() !== 'granted') return;
 
             const now = new Date();
             const todayStr = format(now, 'yyyy-MM-dd');

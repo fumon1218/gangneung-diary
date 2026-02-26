@@ -1,6 +1,23 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { format } from 'date-fns';
+
+const getSafeStorage = () => {
+    try {
+        // Attempt to access localStorage. This throws in some private modes (e.g. Samsung Internet Secret Mode).
+        const storage = window.localStorage;
+        storage.getItem('__test__');
+        return storage;
+    } catch (e) {
+        // Fallback to in-memory storage if failed
+        const dummyStorage = new Map();
+        return {
+            getItem: (name: string) => dummyStorage.get(name) || null,
+            setItem: (name: string, value: string) => dummyStorage.set(name, value),
+            removeItem: (name: string) => dummyStorage.delete(name),
+        };
+    }
+};
 
 
 
@@ -79,7 +96,14 @@ export const useStore = create<AppState>()(
                 set((state) => ({
                     notifiedTodoIds: [...state.notifiedTodoIds, id]
                 }));
-                if ('Notification' in window && Notification.permission === 'granted') {
+                let isGranted = false;
+                try {
+                    isGranted = ('Notification' in window) && Notification.permission === 'granted';
+                } catch (e) {
+                    isGranted = false;
+                }
+
+                if (isGranted) {
                     new Notification("강릉분원 업무수첩", {
                         body: text,
                         icon: '/gangneung-diary/icon.svg',
@@ -175,6 +199,7 @@ export const useStore = create<AppState>()(
         }),
         {
             name: 'gangneung-diary-storage',
+            storage: createJSONStorage(() => getSafeStorage() as any),
             partialize: (state) => ({
                 todos: state.todos,
                 drawings: state.drawings,

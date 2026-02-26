@@ -15,6 +15,9 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
     },
   },
+  build: {
+    target: 'es2015'
+  },
   plugins: [
     react(),
     VitePWA({

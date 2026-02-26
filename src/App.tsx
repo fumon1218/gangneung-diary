@@ -14,15 +14,19 @@ import { useWeather } from './hooks/useWeather';
 import { useNotifications } from './hooks/useNotifications';
 
 const clearCacheAndReload = async () => {
-  if ('serviceWorker' in navigator) {
-    try {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const registration of registrations) {
-        await registration.unregister();
+  try {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.unregister();
+        }
+      } catch (err) {
+        console.error('SW unregister error', err);
       }
-    } catch (err) {
-      console.error('SW unregister error', err);
     }
+  } catch (e) {
+    console.warn('serviceWorker blocked', e);
   }
   // 캐시를 부수기 위해 URL 쿼리에 타임스탬프를 부여하고, 곧바로 이동 (reload와 충돌 방지)
   const newUrl = window.location.href.split('?')[0].split('#')[0] + '?t=' + new Date().getTime() + window.location.hash;

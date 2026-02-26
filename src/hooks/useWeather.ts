@@ -55,19 +55,24 @@ export const useWeather = () => {
         };
 
         // 브라우저 Geolocation API를 통해 위경도 획득
-        if ('geolocation' in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    fetchWeather(position.coords.latitude, position.coords.longitude);
-                },
-                (err) => {
-                    console.warn("Geolocation permission denied or failed:", err);
-                    setError("Location access denied.");
-                },
-                { timeout: 10000, maximumAge: 3600000 } // 1시간 동안 위치 캐시 유지
-            );
-        } else {
-            setError("Geolocation not supported by this browser.");
+        try {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        fetchWeather(position.coords.latitude, position.coords.longitude);
+                    },
+                    (err) => {
+                        console.warn("Geolocation permission denied or failed:", err);
+                        setError("Location access denied.");
+                    },
+                    { timeout: 10000, maximumAge: 3600000 } // 1시간 동안 위치 캐시 유지
+                );
+            } else {
+                setError("Geolocation not supported by this browser.");
+            }
+        } catch (e) {
+            console.warn("Geolocation API access blocked:", e);
+            setError("Location access blocked.");
         }
     }, [weatherCache, setWeatherCache]);
 
