@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. users 하위의 문서({userId})에 대한 규칙 설정
+    match /users/{userId} {
+      // 2. 오직 로그인(request.auth != null)한 당사자의 UID와 문서ID가 일치할 때만 읽고(read) 쓰기(write) 허용
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // 3. 그 외 알 수 없는 모든 경로에 대해서는 접근(읽기/쓰기) 원천 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
