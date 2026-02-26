@@ -10,7 +10,14 @@ export const useNotifications = () => {
         // 권한 요청 (최초 1회)
         if ('Notification' in window && Notification.permission === 'default' && !isPermissionRequested.current) {
             isPermissionRequested.current = true;
-            Notification.requestPermission().catch(console.warn);
+            try {
+                const permissionPromise = Notification.requestPermission();
+                if (permissionPromise && typeof permissionPromise.catch === 'function') {
+                    permissionPromise.catch(console.warn);
+                }
+            } catch (error) {
+                console.warn('Error requesting notification permission:', error);
+            }
         }
     }, []);
 
